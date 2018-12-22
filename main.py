@@ -182,5 +182,16 @@ def dev_data(operation):
         return flask.jsonify(data)  # 这种写法Content-Type为application/json(后面没有charset=utf-8，默认编码为utf-8)
 
 
+@app.after_request
+def af_request(resp):
+    # 请求钩子，在每个请求发生后自动执行，这里用于设置header，实现跨域
+
+    resp = flask.make_response(resp)
+    resp.headers['Access-Control-Allow-Origin'] = '*'
+    resp.headers['Access-Control-Allow-Methods'] = 'GET,POST'
+    resp.headers['Access-Control-Allow-Headers'] = 'x-requested-with,content-type'
+    return resp
+
+
 if __name__ == '__main__':
     app.run(debug=True)
