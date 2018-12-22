@@ -142,7 +142,7 @@ def dev_cmd(operation):
         r = redis.Redis(connection_pool=pool)
         ret = r.set(redis_key, content, ex=10)  # 过期时间为10秒
         if(ret):
-            ret = "yes"
+            ret = "ok"
         else:
             ret = "err"
         return ret, 200, {'Content-Type': 'text/plain; charset=utf-8'}
@@ -167,9 +167,13 @@ def dev_data(operation):
         cur_time = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
         r = redis.Redis(connection_pool=pool)
         ret = r.hmset(redis_key, {"content": content, "time": cur_time})
+
         if ret:
-            return "ok"
-        return "err"
+            ret = "ok"
+        else:
+            ret = "err"
+            
+        return ret, 200, {'Content-Type': 'text/plain; charset=utf-8'}
     elif operation == "query":
         r = redis.Redis(connection_pool=pool)
         data = {"err": 1, "content": "", "time": ""}
