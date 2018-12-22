@@ -9,10 +9,14 @@
 @time: 2018/12/5 20:32
 """
 
-import re, json
+import time, re, json
 import urllib
 import flask
 from werkzeug.contrib.fixers import ProxyFix
+import redis
+
+
+pool = redis.ConnectionPool(host='localhost', port=6379, decode_responses=True)
 
 
 def get_robot_reply(input_text):
@@ -125,6 +129,57 @@ def idcard():
     # return flask.Response(json.dumps(card_info, ensure_ascii=False), mimetype='application/json; charset=utf-8')  # 返回Response对象
     # return json.dumps(card_info, ensure_ascii=False), 200, {'Content-Type': 'application/json; charset=utf-8'}  # 返回元组，和上面的写法等效
     return flask.jsonify(card_info)  # 这种写法Content-Type为application/json(后面没有charset=utf-8，默认编码为utf-8)
+
+
+@app.route("/device/cmd/<operation>")
+def dev_cmd(operation):
+    user_id = flask.request.args.get("user_id", "")
+    dev_id = flask.request.args.get("dev_id", "")
+    redis_key = "cmd " + user_id + " " + dev_id
+
+    if operation == "send":
+        content = flask.request.args.get("content", "")
+        r = redis.Redis(connection_pool=pool)
+        ret = r.set(redis_key, content, ex=10)  # 过期时间为10秒
+        if(ret):
+            ret = "yes"
+        else:
+            ret = "err"
+        return ret, 200, {'Content-Type': 'text/plain; charset=utf-8'}
+    elif operation == "get":
+        r = redis.Redis(connection_pool=pool)
+        ret = r.get(redis_key)
+        if ret is None:
+            return "", 200, {'Content-Type': 'text/plain; charset=gbk'}
+        else:
+            r.delete(redis_key)
+            return ret.encode("gbk"), 200, {'Content-Type': 'text/plain; charset=gbk'}
+
+
+@app.route("/device/data/<operation>")
+def dev_data(operation):
+    user_id = flask.request.args.get("user_id", "")
+    dev_id = flask.request.args.get("dev_id", "")
+    redis_key = "data " + user_id + " " + dev_id
+
+    if operation == "upload":
+        content = flask.request.args.get("content", "")
+        cur_time = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
+        r = redis.Redis(connection_pool=pool)
+        ret = r.hmset(redis_key, {"content": content, "time": cur_time})
+        if ret:
+            return "ok"
+        return "err"
+    elif operation == "query":
+        r = redis.Redis(connection_pool=pool)
+        data = {"err": 1, "content": "", "time": ""}
+
+        if r.exists(redis_key):
+            data["err"] = 0
+            data["content"] = r.hget(redis_key, "content")
+            data["time"] = r.hget(redis_key, "time")
+
+        return flask.jsonify(data)  # 这种写法Content-Type为application/json(后面没有charset=utf-8，默认编码为utf-8)
 
 
 if __name__ == '__main__':
