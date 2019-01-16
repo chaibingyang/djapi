@@ -186,6 +186,30 @@ def dev_data(operation):
         return flask.jsonify(data)  # 这种写法Content-Type为application/json(后面没有charset=utf-8，默认编码为utf-8)
 
 
+@app.route("/pc/cmd/<operation>")
+def pc_cmd(operation):
+    pc_id = flask.request.args.get("id", "")
+    redis_key = pc_id
+
+    if operation == "send":
+        content = flask.request.args.get("content", "")
+        r = redis.Redis(connection_pool=pool)
+        ret = r.set(redis_key, content, ex=3)  # 过期时间为3秒
+        if(ret):
+            ret = "ok"
+        else:
+            ret = "err"
+        return ret, 200, {'Content-Type': 'text/plain; charset=utf-8'}
+    elif operation == "get":
+        r = redis.Redis(connection_pool=pool)
+        ret = r.get(redis_key)
+        if ret is None:
+            return "", 200, {'Content-Type': 'text/plain; charset=gbk'}
+        else:
+            # r.delete(redis_key)
+            return ret.encode("gbk"), 200, {'Content-Type': 'text/plain; charset=gbk'}
+
+
 @app.after_request
 def af_request(resp):
     # 请求钩子，在每个请求发生后自动执行，这里用于设置header，实现跨域

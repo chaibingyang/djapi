@@ -227,3 +227,60 @@ JSON返回示例：
 }
 ```
 
+
+
+
+### 向PC机上运行的程序发送控制命令
+
+**接口地址：** [http://api.itmojun.com/pc/cmd/send](http://api.itmojun.com/pc/cmd/send)
+
+**返回格式：** text/plain; charset=utf-8
+
+**请求方式：** get
+
+**请求示例：** [http://api.itmojun.com/pc/cmd/send?id=dj&content=poweroff](http://api.itmojun.com/pc/cmd/send?id=dj&content=poweroff)
+
+**跨域调用：** 支持
+
+   
+
+请求参数说明：
+
+| 名称    | 必填 | 类型   | 说明                                                   |
+| ------- | ---- | ------ | ------------------------------------------------------ |
+| id      | Y    | string | PC机上运行的程序的ID，用来唯一地标识不同的程序，比如dj |
+| content | Y    | string | 控制命令内容，比如poweroff |
+
+
+
+返回参数说明：执行成功返回ok，失败返回err
+
+
+
+
+### PC程序从平台获取最新的控制命令
+
+**接口地址：** [http://api.itmojun.com/pc/cmd/get](http://api.itmojun.com/pc/cmd/get)
+
+**返回格式：** text/plain; charset=gbk（字符集为gbk是为了方便Visual C++进行处理）
+
+**请求方式：** get
+
+**请求示例：** [http://api.itmojun.com/pc/cmd/get?id=dj](http://api.itmojun.com/pc/cmd/get?id=dj)
+
+**跨域调用：** 支持
+
+   
+
+请求参数说明：
+
+| 名称    | 必填 | 类型   | 说明                                                   |
+| ------- | ---- | ------ | ------------------------------------------------------ |
+| id      | Y    | string | PC机上运行的程序的ID，用来唯一地标识不同的程序，比如dj |
+
+
+
+返回参数说明：获取到的最新控制命令内容，如果没有控制命令内容则返回空字符串
+
+备注：通过上面的发送控制命令接口发送的控制命令会在3秒后失效，所以发送控制命令后要及时调用本接口，另外建议每隔3秒调用一次本接口，否则可能多次接收到重复的控制命令内容
+
