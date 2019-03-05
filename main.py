@@ -14,6 +14,7 @@ import urllib
 import flask
 from werkzeug.contrib.fixers import ProxyFix
 import redis
+import paho.mqtt.publish as publish
 
 
 pool = redis.ConnectionPool(host='localhost', port=6379, decode_responses=True)
@@ -208,6 +209,21 @@ def pc_cmd(operation):
         else:
             # r.delete(redis_key)
             return ret.encode("gbk"), 200, {'Content-Type': 'text/plain; charset=gbk'}
+
+
+@app.route('/mqtt', methods=['POST'])
+def mqtt_server():
+    # flask.request.args.get方法只能获取url中的参数，不能获取请求体中的数据，所以不能用于这里
+    topic = flask.request.form.get('topic')
+    payload = flask.request.form.get('payload')
+
+    if topic is None:
+        reply = 'err'
+    else:
+        publish.single(topic, payload, hostname="localhost", port=1883)
+        reply = 'ok'
+
+    return reply, 200, {'Content-Type': 'text/plain; charset=utf-8'}
 
 
 @app.after_request
