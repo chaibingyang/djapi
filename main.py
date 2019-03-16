@@ -11,10 +11,12 @@
 
 import time, re, json
 import urllib
+from io import BytesIO
 import flask
 from werkzeug.contrib.fixers import ProxyFix
 import redis
 import paho.mqtt.publish as publish
+import qrcode
 
 
 pool = redis.ConnectionPool(host='localhost', port=6379, decode_responses=True)
@@ -224,6 +226,22 @@ def mqtt_server():
         reply = 'ok'
 
     return reply, 200, {'Content-Type': 'text/plain; charset=utf-8'}
+
+
+# 在线二维码生成接口
+@app.route("/qr")
+def gen_qrcode():
+    # 获得HTTP请求中的URL参数（参数名称为text）
+    text = flask.request.args.get("text")
+
+    # 创建BytesIO对象，用于存放二维码图像数据
+    bi = BytesIO()
+    img = qrcode.make(text)  # 生成二维码图像
+    img.save(bi, "png")  # 将二维码图像以png编码格式写入bi对象
+    bi.seek(0)  # 移动bi对象的位置指针到开头
+
+    # 将二维码图像数据发送给浏览器
+    return flask.send_file(bi, "image/png")
 
 
 @app.after_request

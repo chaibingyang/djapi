@@ -311,3 +311,32 @@ JSON返回示例：
 
 返回参数说明：执行成功返回ok，失败返回err
 
+
+
+### 在线二维码生成器
+
+**接口地址：** [http://api.itmojun.com/qr](http://api.itmojun.com/qr)
+
+**返回格式：** image/png
+
+**请求方式：** get
+
+**请求示例：** [http://api.itmojun.com/qr?text=IT魔君](http://api.itmojun.com/qr?text=IT魔君)
+
+**跨域调用：** 支持
+
+
+
+请求参数说明：
+
+| 名称    | 必填 | 类型   | 说明                                          |
+| ------- | ---- | ------ | --------------------------------------------- |
+| text   | Y    | string | 要编码成二维码图像的数据内容 |   
+
+
+
+调用示例：
+
+```
+<img src="https://api.itmojun.com/qr?text=IT魔君" />
+```
