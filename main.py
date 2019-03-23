@@ -233,10 +233,33 @@ def mqtt_server():
 def gen_qrcode():
     # 获得HTTP请求中的URL参数（参数名称为text）
     text = flask.request.args.get("text")
+    bg_color = flask.request.args.get("bg", "ffffff")  # 默认背景色为白色
+    fg_color = flask.request.args.get("fg", "000000")  # 默认前景色为黑色
+
+    bg_color = "#" + bg_color
+    fg_color = "#" + fg_color
+
+    # img = qrcode.make(text)  # 生成二维码图像
+
+    qr = qrcode.QRCode(
+        version=1,  # 本参数指定二维码的尺寸，其值为1-40范围的整数，如果它为None或者下面调用make方法时传入fit=True的参数，二维码图像的尺寸将自动确定
+        error_correction=qrcode.constants.ERROR_CORRECT_M,  # 容错级别
+        box_size=10,  # 指定构成二维码的每个小格子的尺寸为10像素点
+        border=2,  # 指定二维码的边距为多少个小格子
+    )
+    qr.add_data(text)  # 设置要编码的数据内容
+    qr.make(fit=True)
+
+    '''
+    颜色字符串写法格式有以下3种：
+    1. 十六进制颜色说明符，例如，“#ff0000”指定纯红色
+    2. RGB函数，以“rgb（红色，绿色，蓝色）”给出，其中颜色值是0到255范围内的整数，如，“rgb（255, 0, 0）”和“rgb（100％，0％，0％）”
+    3. 常见的HTML颜色名称，例如，“red”指定纯红色
+    '''
+    img = qr.make_image(fill_color=fg_color, back_color=bg_color)
 
     # 创建BytesIO对象，用于存放二维码图像数据
     bi = BytesIO()
-    img = qrcode.make(text)  # 生成二维码图像
     img.save(bi, "png")  # 将二维码图像以png编码格式写入bi对象
     bi.seek(0)  # 移动bi对象的位置指针到开头
 
